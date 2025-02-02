@@ -8,9 +8,8 @@
   "devDependencies": {
     "typescript": "^5.5.3"
   },
-  "prepublish": "tsc --project tsconfig.json",
-  "types": "dist/index.d.ts",
-  "main": "dist/index.js",
+  "types": "src/index.d.ts",
+  "main": "src/index.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ShindouMihou/client.ts.git"
