@@ -1,3 +1,3 @@
-export { createClient } from "./builder/createClient";
-export { createRoute, staticRoute, dynamicRoute, route } from "./builder/route";
-export { withAuthorization } from "./middlewares/withAuthorization";
+export * from "./builder/createClient";
+export * from "./builder/route";
+export * from "./middlewares/withAuthorization";
