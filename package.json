@@ -1,13 +1,25 @@
 {
   "name": "@client.ts/core",
   "version": "1.0.0",
-  "description": "",
-  "main": "dist/index.js",
+  "description": "A single source of truth for all your Typescript HTTP Requests!",
   "scripts": {
     "build": "tsc"
   },
   "devDependencies": {
     "typescript": "^5.5.3"
   },
-  "private": true
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ShindouMihou/client.ts.git"
+  },
+  "keywords": [
+    "http"
+  ],
+  "author": "Shindou Mihou",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ShindouMihou/client.ts/issues"
+  },
+  "homepage": "https://github.com/ShindouMihou/client.ts#readme"
 }
