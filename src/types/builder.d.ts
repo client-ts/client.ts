@@ -33,7 +33,6 @@ export type Request = {
     decoder?: (body: string) => Response
 }
 
-
 export type PureRoute<Response> = {
     method?: "GET" | "POST" | "PUT" | "DELETE",
     route: string,
