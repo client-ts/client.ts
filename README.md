@@ -31,7 +31,7 @@ const client = createClient("https://jsonplaceholder.typicode.com", {
 })
 ```
 ```ts
-const posts = await client.posts.get()
+const {result: posts} = await client.posts.get()
 ```
 
 ## Get Started
@@ -93,9 +93,9 @@ const client = createClient("baseUrl", {
 
 You can then access them using the `client` object, such as:
 ```ts
-const resources = await client.resource.get()
-const firstResource = await client.resource.getFirst()
-const resourceOne = await client.resource.getById(1)
+const {result: resources} = await client.resource.get()
+const {result: firstResource} = await client.resource.getFirst()
+const {result: resourceOne} = await client.resource.getById(1)
 ```
 
 

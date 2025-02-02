@@ -1,5 +1,6 @@
-import {ClientBuilder, ClientBuilderOptions, Connector, PureRoute, Request} from "../types/builder";
+import {ClientBuilder, ClientBuilderOptions, PureRoute} from "../types/builder";
 import {Client} from "../types/client";
+import {Connector, Request, Result} from "../types/http";
 
 export function createClient<C extends ClientBuilder>(baseUrl: string, config: C, options?: ClientBuilderOptions): Client<C> {
     const client = {} as Client<C>;
@@ -37,8 +38,6 @@ export function createClient<C extends ClientBuilder>(baseUrl: string, config: C
                 }
 
                 const middlewares = [...globals.middlewares, ...local.middlewares];
-                const afterwares = [...globals.afterwares, ...local.afterwares];
-
                 for (const middleware of middlewares) {
                     request = middleware(request);
                 }
@@ -68,14 +67,27 @@ export function createClient<C extends ClientBuilder>(baseUrl: string, config: C
                         ) ? body : encoder(body) : undefined,
                     headers
                 }).
-                then(res => decoder === JSON.parse ? res.json() : res.text().then(decoder)).
+                then(async (res) => {
+                    let [result, err]: [any, any] = [null, null];
+                    try {
+                        result = decoder === JSON.parse ?
+                            await res.json() :
+                            await res.text().then(decoder)
+                    } catch (e) {
+                        err = e
+                    }
+                    return {
+                        headers: res.headers,
+                        statusCode: res.status,
+                        result: result,
+                        decodeError: err
+                    } as Result<any>
+                }).
                     then((res) => {
-                        async function runAfterwares() {
-                            for (const afterware of afterwares) {
-                                afterware(request);
-                            }
+                        const afterwares = [...globals.afterwares, ...local.afterwares];
+                        for (const afterware of afterwares) {
+                            afterware(request, res);
                         }
-                        runAfterwares();
                         return res
                     });
             };
