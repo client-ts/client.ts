@@ -30,7 +30,7 @@ export type Request = {
         [key: string]: any
     }
     encoder?: (body: any) => string
-    decoder?: (body: string) => Response
+    decoder?: (body: string) => any
 }
 
 export type PureRoute<Response> = {
