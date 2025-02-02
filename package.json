@@ -1,11 +1,12 @@
 {
   "name": "@client.ts/core",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A single source of truth for all your Typescript HTTP Requests!",
   "scripts": {
-    "build": "tsc"
+    "build": "tsup src/ --dts --sourcemap"
   },
   "devDependencies": {
+    "tsup": "^8.3.6",
     "typescript": "^5.5.3"
   },
   "types": "src/index.d.ts",

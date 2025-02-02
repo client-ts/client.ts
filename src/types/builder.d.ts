@@ -4,7 +4,7 @@ export type ClientBuilder = {
     [key: string]: Resource
 }
 
-export type Connector = (path: string, init: RequestInit) => Promise<{ text(): Promise<string>, json(): Promise<*> }>
+export type Connector = (path: string, init: RequestInit) => Promise<{ text(): Promise<string>, json(): Promise<any> }>
 export type ClientBuilderOptions = {
     connector?: Connector
 } & WithConsumers
