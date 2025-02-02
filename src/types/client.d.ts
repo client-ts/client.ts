@@ -1,5 +1,5 @@
-import {PureRoute, Request, WithConsumers} from "./builder";
-import {Result} from "./http";
+import {PureRoute, WithConsumers} from "./builder";
+import {Request, Result} from "./http";
 
 export type RouteDef<Response, Args extends any[]> = {
     _constructor: (...args: Args) => string | PureRoute<Response>;

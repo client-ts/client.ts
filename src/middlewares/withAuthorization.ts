@@ -1,7 +1,7 @@
 import {Request} from "../types/http";
 import {RequestConsumer} from "../types/client";
 
-export const withAuthorization: RequestConsumer = (token: string, header?: string)=>
+export const withAuthorization = (token: string, header?: string): RequestConsumer =>
     ((request: Request): Request => {
         return {
             ...request,
