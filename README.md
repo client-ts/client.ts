@@ -1,14 +1,12 @@
 # Client.ts
 
-*Redux Toolkit-inspired HTTP Client*
+**Redux Toolkit-inspired HTTP Client**
 
-`client.ts` is a lightweight HTTP client designed with a similar principle of Redux, in which, it is a single source of 
-truth for all your HTTP request methods. It's heavily designed to work with Typescript, and uses `fetch` internally, 
-but can be customized to use another library, like Axios.
+`client.ts` is a lightweight HTTP client designed with a similar principle to Redux: it serves as a single source of truth for all your HTTP request methods. Built with TypeScript in mind, it uses `fetch` internally but can be customized to work with other libraries like Axios.
 
 ```ts
-import {createClient} from "./builder/createClient";
-import {createRoute} from "./builder/route";
+import { createClient, createRoute } from "@client.ts/core";
+
 const client = createClient("https://jsonplaceholder.typicode.com", {
     posts: {
         prefix: "/posts",
@@ -21,121 +19,166 @@ const client = createClient("https://jsonplaceholder.typicode.com", {
                 headers: {
                     'X-Authorization': "Hello"
                 },
-                // Default, but still shown just for example of how you can 
-                // change the decoder and encoder.
+                // Default encoder and decoder shown for example purposes
                 encoder: JSON.stringify,
                 decoder: JSON.parse,
             }))
         }
     }
-})
+});
 ```
+
 ```ts
-const {result: posts} = await client.posts.get()
+const { result: posts } = await client.posts.get();
 ```
 
-## Get Started
+---
 
-To get started, simply add this as a dependency to your project:
+## Getting Started
+
+To get started, install the package as a dependency in your project:
+
 ```bash
-npm i @client.ts/core
+npm install @client.ts/core
 ```
 
-You can then use the `createClient` function to create a client instance. It requires you to have a `baseUrl` which 
-will be prefixed to all routes. We use a `Resource -> Route` structure to define the routes, which means, that you 
-should follow the following structure:
+### Creating a Client
+
+Use the `createClient` function to create a client instance. It requires a `baseUrl`, which will be prefixed to all routes. The client follows a `Resource -> Route` structure for defining routes:
+
 ```ts
 createClient("baseUrl", {
     resource: {
-        prefix: "/resource", // Optional,
+        prefix: "/resource", // Optional
         routes: {
+            // Define routes here
         }
     }
-})
+});
 ```
 
-To create a route, there are two approaches to this, a static route, and a dynamic route. A static route is a route 
-that simply is just a string with `METHOD /path` which `client.ts` will use to make the request. A dynamic route is 
-a route that requires a parameter to be passed to it, which is a function that returns a string. 
+---
 
-Defining a route is simple, you can use the `createRoute` function to create a route, and then use the `static` or 
-`dynamic` function to define the route.
+### Defining Routes
+
+Routes can be defined as either **static** or **dynamic**:
+
+- **Static Routes**: A simple string in the format `METHOD /path`.
+- **Dynamic Routes**: A function that takes parameters and returns a string or an object with request details.
+
+Use the `createRoute` function to define routes:
+
 ```ts
 createClient("baseUrl", {
     resource: {
-        prefix: "/resource", // Optional,
+        prefix: "/resource", // Optional
         routes: {
             get: createRoute<Resource[]>().static("GET /"),
             getById: createRoute<Resource>().dynamic((id: number) => `GET /${id}`)
         }
     }
-})
+});
 ```
 
-You can also reuse the `createRoute` for each resource by storing it as another variable:
+---
+
+### Reusing Route Creators
+
+You can reuse `createRoute` for multiple resources by storing it in a variable:
 
 ```ts
-import {createRoute} from "./route";
+import { createClient, createRoute } from "@client.ts/core";
 
-const {static: createStaticResourceRoute, dynamic: createDynamicResourceRoute} = createRoute<Resource>()
+const { static: createStaticResourceRoute, dynamic: createDynamicResourceRoute } = createRoute<Resource>();
+
 const client = createClient("baseUrl", {
     resource: {
-        prefix: "/resource", // Optional,
+        prefix: "/resource", // Optional
         routes: {
-            // We can't use `createStaticResourceRoute` here, as this demands a different type.
             get: createRoute<Resource[]>().static("GET /"),
-            getFirst: createStaticResourceRoute("GET /first"),
-            getById: createDynamicResourceRoute((id: number) => `GET /${id}`)
+            getFirst: createStaticResourceRoute.static("GET /first"),
+            getById: createDynamicResourceRoute.dynamic((id: number) => `GET /${id}`)
         }
     }
-})
+});
 ```
 
-You can then access them using the `client` object, such as:
+Access the routes using the `client` object:
+
 ```ts
-const {result: resources} = await client.resource.get()
-const {result: firstResource} = await client.resource.getFirst()
-const {result: resourceOne} = await client.resource.getById(1)
+const { result: resources } = await client.resource.get();
+const { result: firstResource } = await client.resource.getFirst();
+const { result: resourceOne } = await client.resource.getById(1);
 ```
 
+---
 
-In addition, you can add `middlewares` and `afterwares` which will allow you to perform actions before, and after the 
-request. In the case of `middlewares`, you can modify the request before it is sent, adding headers, and whatever is 
-needed for the request.
+### Middlewares and Afterwares
 
-These are available as both global and resource wide.
+You can add **middlewares** and **afterwares** to perform actions before and after a request. Middlewares allow you to modify the request (e.g., adding headers), while afterwares can log or process the response.
+
+These can be applied globally or at the resource level:
 
 ```ts
 const client = createClient("baseUrl", {
     resource: {
-        prefix: "/resource", // Optional,
+        prefix: "/resource", // Optional
         routes: {
-            // We can't use `createStaticResourceRoute` here, as this demands a different type.
             get: createRoute<Resource[]>().static("GET /"),
-            getFirst: createStaticResourceRoute("GET /first"),
-            getById: createDynamicResourceRoute((id: number) => `GET /${id}`)
+            getFirst: createStaticResourceRoute.static("GET /first"),
+            getById: createDynamicResourceRoute.dynamic((id: number) => `GET /${id}`)
         },
-        middlewares: [],
-        afterwares: []
+        middlewares: [], // Resource-specific middlewares
+        afterwares: [] // Resource-specific afterwares
     }
 }, {
     middlewares: [
         (request) => {
             return {
                 ...request,
-                path: "/5"
-            }
+                path: "/5" // Modify the request path
+            };
         }
     ],
-    // It is important to note that while afterwares may be at the end of the request, it is still before 
-    // the promise resolves, so that means it will still block the call.
     afterwares: [
         (request) => {
-            console.info(request)
-            return request
+            console.info(request); // Log the request
+            return request;
         }
     ]
-})
+});
 ```
 
-An example of a middleware that adds a header to the request is [`withAuthorization.ts`](src/middlewares/withAuthorization.ts).
+---
+
+### Example Middleware: Adding Authorization
+
+Here’s an example of a middleware that adds an authorization header to the request:
+
+```ts
+// src/middlewares/withAuthorization.ts
+const withAuthorization = (token: string) => (request: Request) => {
+    return {
+        ...request,
+        headers: {
+            ...request.headers,
+            'Authorization': `Bearer ${token}`
+        }
+    };
+};
+```
+
+---
+
+## Key Features
+
+- **TypeScript Support**: Built with TypeScript for type-safe HTTP requests.
+- **Customizable**: Use `fetch` or replace it with libraries like Axios.
+- **Middleware Support**: Modify requests or responses globally or per-resource.
+- **Resource-Based Structure**: Organize routes under resources for better maintainability.
+
+---
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
