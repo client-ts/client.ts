@@ -145,15 +145,16 @@ while `afterRequest` can log or process the response.
 These can be applied globally, at a resource level, at a route level, or even during request (through another hook):
 
 ```ts
-import {createHook} from "@client.ts/core";
+import {createHook, createSingleAndArrayedRoute} from "@client.ts/core";
 
+const { single: resourceRoute, arrayed: resourcesRoute } = createSingleAndArrayedRoute<Resource>();
 const client = createClient("baseUrl", {
     resource: {
         prefix: "/resource", // Optional
         routes: {
-            get: createRoute<Resource[]>().static("GET /"),
-            getFirst: createStaticResourceRoute.static("GET /first"),
-            getById: createDynamicResourceRoute.dynamic((id: number) => `GET /${id}`)
+            get: resourcesRoute.static("GET /"),
+            getFirst: resourceRoute.static("GET /first"),
+            getById: resourceRoute.dynamic((id: number) => `GET /${id}`)
         },
         hooks: [] // Hooks for the resource
     }
