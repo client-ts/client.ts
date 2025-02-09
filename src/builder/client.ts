@@ -164,6 +164,15 @@ export function createClient<C extends ClientBuilder>(baseUrl: string, config: C
                     }
                 }
 
+                // Auto-apply the JSON Content-Type header if the body is an object.
+                if (encoder === JSON.stringify && request.headers?.['Content-Type'] === undefined) {
+                    request = request.merge({
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                }
+
                 return connector(url.toString(), {
                     method,
                     body: body ?
