@@ -130,6 +130,7 @@ const client = createClient("baseUrl", {
 ### Encoder and Decoder
 Client.ts, by default, uses `JSON.stringify` as the encoder and `JSON.parse` as the decoder, as most of the web standards uses JSON. Although, there are special cases in 
 encoding where we ignore the `encoder`, these cases are when the type of the body is supported by native fetch, which are:
+* **String**
 * **ReadableStream**
 * **FormData**
 * **ArrayBuffer**
@@ -137,6 +138,14 @@ encoding where we ignore the `encoder`, these cases are when the type of the bod
 
 If you want to handle those body beforehand, use **Hooks** to transform the request body to your liking before it gets passed to the connector. You can also specify 
 a different encoder at a global, per-resource and per-route level by specifying the `encoder` and `decoder` properties.
+
+### Fetch
+Client.ts is built on top of the native fetch API, which is supported by all modern browsers. But, we do not support all options that fetch has, although 
+we allow you to pass options that we do not support through the `additionalFetchOptions` property in a per-client, per-resource and per-route level, this means 
+that you can add options like `credentials`, `mode`, `cache` for browser, or `idempotent`, `blocking`, `reset` for undici fetch.
+
+We do it this way because we want to keep the library compatible with most environments, as much as possible. Although, there are definitely scenarios where we cannot 
+fulfill this compatibility, but we will try our best to make it as compatible as possible.
 
 ## 🔌 Hooks: Supercharge Your Workflows
 
