@@ -14,7 +14,6 @@ Tired of scattered API calls and messy data fetching logic?  Client.ts brings or
 
 * **TypeScript First:** Enjoy full type safety and autocompletion for a more robust and maintainable codebase. Say goodbye to runtime errors and hello to developer productivity.
 * **Redux-Inspired Structure:**  Organize your API interactions with a clear, resource-based structure, making your code easier to understand, maintain, and scale.
-* **Flexible and Customizable:**  Use the built-in `fetch` API or easily integrate with other HTTP libraries like Axios. Tailor Client.ts to your specific needs.
 * **Powerful Hooks System:**  Intercept and modify requests and responses globally, per resource, or even per route. Implement custom logic like authentication, logging, or data transformation with ease.
 * **Leveled Headers:** Define headers at the client, resource, route, or hook level for granular control and reduced boilerplate.
 * **Simplified Route Definitions:** Define static routes with simple strings or dynamic routes with functions, providing flexibility for complex API interactions.
@@ -27,7 +26,6 @@ Tired of scattered API calls and messy data fetching logic?  Client.ts brings or
 |------------------------|-------------------------|-------------------------|
 | **Type Safety**        | First-class citizen     | Manual typings          |
 | **API Structure**      | Resource-centric design | Scattered endpoints     |
-| **Customization**      | Swap HTTP engines       | Library-locked          |
 | **Hooks**              | Hooks at every level    | Global interceptors     |
 | **Code Maintenance**   | Built for scale         | Gets messy at scale     |
 
