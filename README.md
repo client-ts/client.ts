@@ -49,7 +49,7 @@ Tired of scattered API calls and messy data fetching logic?  Client.ts brings or
      routes: {
        getAdmin: createStaticUserRoute("GET /admin"),
        getById: createDynamicUserRoute(id => `GET /${id}`),
-       create: createDynamicUserRoute(payload => ({
+       create: createDynamicUserRoute((user: User) => ({
          route: "POST /",
          body: payload
        }))
