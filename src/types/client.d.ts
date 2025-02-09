@@ -13,4 +13,4 @@ export type Client<C extends ClientBuilder> = {
             ? (...args: Args) => Promise<Result<Response>>
             : never;
     }
-} & WithConsumers
+}
