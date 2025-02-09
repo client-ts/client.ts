@@ -7,7 +7,9 @@ export type ClientBuilder = {
 
 export type ClientBuilderOptions = {
     connector?: Connector
-} & WithHooks & WithHeaders
+}   & WithHooks
+    & WithHeaders
+    & WithTimeout
 
 export type WithHooks = {
     hooks?: Hook[]
@@ -15,6 +17,14 @@ export type WithHooks = {
 
 export type Headers = {
     [key: string]: any
+}
+
+export type WithTimeout = {
+    timeout?: number,
+}
+
+export type WithAbortSignal = {
+    abortSignal?: AbortSignal
 }
 
 export type WithHeaders = {
@@ -33,10 +43,16 @@ export type Resource = {
     routes: {
         [key: string]: RouteDef<any, any[]>
     },
-} & WithHooks & WithHeaders
+}   & WithHooks
+    & WithHeaders
+    & WithTimeout
 
 export type PureRoute<Response> = {
     method?: "GET" | "POST" | "PUT" | "DELETE",
     route: string,
     body?: any
-} & WithHooks & WithHeaders & WithEncoderDecoder<Response>
+}   & WithHooks
+    & WithHeaders
+    & WithEncoderDecoder<Response>
+    & WithAbortSignal
+    & WithTimeout

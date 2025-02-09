@@ -41,6 +41,12 @@ function createRequest(base: BaseRequest): Request {
         setBaseUrl(baseUrl: string) {
             this.baseUrl = baseUrl
         },
+        setTimeout(timeout: number) {
+            this.timeout = timeout
+        },
+        setAbortSignal(signal: AbortSignal) {
+            this.abortSignal = signal
+        },
         merge(request: Partial<Request>): Request {
             const newRequest = {
                 ...this,
@@ -97,13 +103,15 @@ export function createClient<C extends ClientBuilder>(baseUrl: string, config: C
 
     const global = {
         hooks: options?.hooks ?? [],
-        headers: options?.headers ?? {}
+        headers: options?.headers ?? {},
+        timeout: options?.timeout
     }
     for (const [resourceName, resource] of Object.entries(config)) {
         const resourceClient = {} as any;
         const res = {
             hooks: resource.hooks ?? [],
-            headers: resource.headers ?? {}
+            headers: resource.headers ?? {},
+            timeout: resource.timeout
         }
 
         const resourceStandardHeaders = {
@@ -120,7 +128,8 @@ export function createClient<C extends ClientBuilder>(baseUrl: string, config: C
                     method: result.split(" ")[0] as "GET" | "POST" | "PUT" | "DELETE",
                     path: result.split(" ")[1],
                     decoder: JSON.parse,
-                    encoder: JSON.stringify
+                    encoder: JSON.stringify,
+                    timeout: res.timeout ?? global.timeout,
                 }) : createRequest({
                     ...result,
                     headers: {
@@ -130,6 +139,7 @@ export function createClient<C extends ClientBuilder>(baseUrl: string, config: C
                     method: result.method ?? result.route.split(" ")[0] as "GET" | "POST" | "PUT" | "DELETE",
                     path: result.route.split(" ")[1],
                     baseUrl: baseUrl,
+                    timeout: result.timeout ?? res.timeout ?? global.timeout,
                 })
 
                 const routeHooks = typeof result === "string" ? [] : result.hooks ?? [];
@@ -183,7 +193,10 @@ export function createClient<C extends ClientBuilder>(baseUrl: string, config: C
                             body instanceof ArrayBuffer ||
                             body instanceof URLSearchParams
                         ) ? body : encoder(body) : undefined,
-                    headers
+                    headers,
+                    signal:
+                        request.abortSignal ??
+                        (request.timeout ? AbortSignal.timeout(request.timeout) : undefined),
                 }).
                 then(async (res) => {
                     let result: any = null;

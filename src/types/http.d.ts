@@ -1,4 +1,4 @@
-import {WithEncoderDecoder, WithHeaders, WithHooks, Headers} from "./builder";
+import {WithEncoderDecoder, WithHeaders, WithHooks, Headers, WithTimeout, WithAbortSignal} from "./builder";
 
 export type Connector = (path: string, init: RequestInit) => Promise<{
     text(): Promise<string>,
@@ -17,7 +17,11 @@ export type BaseRequest = {
     path: string,
     queryParameters?: QueryParameters,
     body?: any,
-} & WithHeaders & WithEncoderDecoder<any> & WithHooks
+}   & WithHeaders
+    & WithEncoderDecoder<any>
+    & WithHooks
+    & WithTimeout
+    & WithAbortSignal
 
 export type Request = BaseRequest & {
     setBody(body: any),
@@ -27,6 +31,8 @@ export type Request = BaseRequest & {
     setDecoder(decoder: Decoder<any>),
     setQueryParameters(queryParameters: QueryParameters),
     addQueryParameters(queryParameters: QueryParameters),
+    setTimeout(timeout: number),
+    setAbortSignal(signal: AbortSignal),
     setPath(path: string),
     setMethod(method: "GET" | "POST" | "PUT" | "DELETE"),
     setBaseUrl(baseUrl: string),
