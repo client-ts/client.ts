@@ -6,9 +6,7 @@ export type ClientBuilder = {
     [key: string]: Resource
 }
 
-export type ClientBuilderOptions = {
-    connector?: Connector
-}   & WithHooks
+export type ClientBuilderOptions = WithHooks
     & WithHeaders
     & WithTimeout
 

@@ -1,4 +1,4 @@
-import {PureRoute, WithHooks} from "./builder";
+import {PureRoute} from "./builder";
 import {Request, Result} from "./http";
 
 export type RouteDef<Response, Args extends any[]> = {

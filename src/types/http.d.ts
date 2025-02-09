@@ -1,12 +1,5 @@
 import {WithEncoderDecoder, WithHeaders, WithHooks, Headers, WithTimeout, WithAbortSignal} from "./builder";
 
-export type Connector = (path: string, init: RequestInit) => Promise<{
-    text(): Promise<string>,
-    json(): Promise<any>,
-    headers: any,
-    status: number
-}>
-
 export type QueryParameters = {
     [key: string]: string | number | boolean
 }

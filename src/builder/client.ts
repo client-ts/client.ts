@@ -1,6 +1,6 @@
 import {ClientBuilder, ClientBuilderOptions, Headers, PureRoute} from "../types/builder";
 import {Client} from "../types/client";
-import {BaseRequest, BaseResult, Connector, Request, Result} from "../types/http";
+import {BaseRequest, BaseResult, Request, Result} from "../types/http";
 
 function createRequest(base: BaseRequest): Request {
     return {
@@ -96,11 +96,6 @@ function createResult<Type>(base: BaseResult<Type>): Result<Type> {
 
 export function createClient<C extends ClientBuilder>(baseUrl: string, config: C, options?: ClientBuilderOptions): Client<C> {
     const client = {} as Client<C>;
-    let connector: Connector = fetch;
-    if (options && options.connector != null) {
-        connector = options.connector
-    }
-
     const global = {
         hooks: options?.hooks ?? [],
         headers: options?.headers ?? {},
@@ -184,7 +179,7 @@ export function createClient<C extends ClientBuilder>(baseUrl: string, config: C
                     })
                 }
 
-                return connector(url.toString(), {
+                return fetch(url.toString(), {
                     method,
                     body: body ?
                         (
