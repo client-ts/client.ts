@@ -22,7 +22,7 @@ Tired of scattered API calls and messy data fetching logic?  Client.ts brings or
 
 ## Why Client.ts?
 
-| Feature                | client.ts 🦸♂️          | Axios/Fetch 🧑💻         |
+| Feature                | client.ts 🦸💻          | Axios/Fetch 🧑💻         |
 |------------------------|-------------------------|-------------------------|
 | **Type Safety**        | First-class citizen     | Manual typings          |
 | **API Structure**      | Resource-centric design | Scattered endpoints     |
@@ -38,13 +38,13 @@ Tired of scattered API calls and messy data fetching logic?  Client.ts brings or
 
 2. **Define Your First Resource** (`src/api/users.ts`):
    ```ts
-   import { createRoute } from "@client.ts/core";
+   import { createRoute, createResource } from "@client.ts/core";
 
    // This is the recommended way for non-arrayed types
    export const { static: createStaticUserRoute, dynamic: createDynamicUserRoute } = 
      createRoute<User>();
    
-   export const UsersResource = {
+   export const UsersResource = createResource({
      prefix: "/users",
      routes: {
        getAdmin: createStaticUserRoute("GET /admin"),
@@ -54,7 +54,7 @@ Tired of scattered API calls and messy data fetching logic?  Client.ts brings or
          body: user
        }))
      }
-   };
+   });
    ```
 
 3. **Assemble Your Client** (`src/api/client.ts`):
