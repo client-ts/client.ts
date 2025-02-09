@@ -1,4 +1,12 @@
-import {WithEncoderDecoder, WithHeaders, WithHooks, Headers, WithTimeout, WithAbortSignal} from "./builder";
+import {
+    WithEncoderDecoder,
+    WithHeaders,
+    WithHooks,
+    Headers,
+    WithTimeout,
+    WithAbortSignal,
+    WithAdditionalFetchOptions
+} from "./builder";
 
 export type QueryParameters = {
     [key: string]: string | number | boolean
@@ -18,6 +26,7 @@ export type BaseRequest = {
     & WithHooks
     & WithTimeout
     & WithAbortSignal
+    & WithAdditionalFetchOptions
 
 export type Request = BaseRequest & {
     setBody(body: any),

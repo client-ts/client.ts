@@ -9,6 +9,7 @@ export type ClientBuilder = {
 export type ClientBuilderOptions = WithHooks
     & WithHeaders
     & WithTimeout
+    & WithAdditionalFetchOptions
 
 export type WithHooks = {
     hooks?: Hook[]
@@ -30,6 +31,13 @@ export type WithHeaders = {
     headers?: Headers
 }
 
+export type WithAdditionalFetchOptions = {
+    // Merged into the fetch options object, in case you need to add options
+    // that we do not support by default, because of either compatibility between
+    // environments, or other reasons.
+    additionalFetchOptions?: any
+}
+
 export type Encoder = (body: any) => string
 export type Decoder<T> = (body: string) => T
 export type WithEncoderDecoder<T> = {
@@ -45,6 +53,7 @@ export type Resource = {
 }   & WithHooks
     & WithHeaders
     & WithTimeout
+    & WithAdditionalFetchOptions
 
 export type PureRoute<Response> = {
     method?: "GET" | "POST" | "PUT" | "DELETE",
@@ -56,3 +65,4 @@ export type PureRoute<Response> = {
     & WithEncoderDecoder<Response>
     & WithAbortSignal
     & WithTimeout
+    & WithAdditionalFetchOptions

@@ -7,14 +7,16 @@ export function createClient<C extends ClientBuilder>(baseUrl: string, config: C
     const global = {
         hooks: options?.hooks ?? [],
         headers: options?.headers ?? {},
-        timeout: options?.timeout
+        timeout: options?.timeout,
+        additionalFetchOptions: options?.additionalFetchOptions ?? {},
     }
     for (const [resourceName, resource] of Object.entries(config)) {
         const resourceClient = {} as any;
         const res = {
             hooks: resource.hooks ?? [],
             headers: resource.headers ?? {},
-            timeout: resource.timeout
+            timeout: resource.timeout,
+            additionalFetchOptions: resource.additionalFetchOptions ?? {},
         }
 
         const resourceStandardHeaders = {
@@ -36,6 +38,7 @@ export function createClient<C extends ClientBuilder>(baseUrl: string, config: C
                     encoder: JSON.stringify,
                     queryParameters: {},
                     timeout: res.timeout ?? global.timeout,
+                    additionalFetchOptions: {},
                 }) : createRequest({
                     ...result,
                     headers: {
@@ -46,6 +49,7 @@ export function createClient<C extends ClientBuilder>(baseUrl: string, config: C
                     path: _path,
                     baseUrl: baseUrl,
                     timeout: result.timeout ?? res.timeout ?? global.timeout,
+                    additionalFetchOptions: result.additionalFetchOptions ?? {},
                 })
 
                 const requestHooks = request.hooks ?? [];
@@ -88,6 +92,12 @@ export function createClient<C extends ClientBuilder>(baseUrl: string, config: C
                     })
                 }
 
+                const additionalFetchOptions = {
+                    ...global.additionalFetchOptions,
+                    ...res.additionalFetchOptions,
+                    ...request.additionalFetchOptions
+                }
+
                 return fetch(fullPath, {
                     method,
                     body: body ?
@@ -102,6 +112,7 @@ export function createClient<C extends ClientBuilder>(baseUrl: string, config: C
                     signal:
                         request.abortSignal ??
                         (request.timeout ? AbortSignal.timeout(request.timeout) : undefined),
+                    ...additionalFetchOptions
                 }).
                 then(async (res) => {
                     let result: any = null;
