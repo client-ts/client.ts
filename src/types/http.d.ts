@@ -4,9 +4,12 @@ export type QueryParameters = {
     [key: string]: string | number | boolean
 }
 
+
+export type HttpMethods = "GET" | "POST" | "PUT" | "DELETE" | "PATCH"
+
 export type BaseRequest = {
     baseUrl: string,
-    method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH",
+    method: HttpMethods,
     path: string,
     queryParameters?: QueryParameters,
     body?: any,
@@ -33,6 +36,10 @@ export type Request = BaseRequest & {
 }
 
 export type BaseResult<Type> = {
+    request: {
+        url: string,
+        method: HttpMethods,
+    }
     headers: Headers,
     statusCode: number,
     data: Type | null,

@@ -1,6 +1,6 @@
 import {ClientBuilder, ClientBuilderOptions, Headers, PureRoute} from "../types/builder";
 import {Client} from "../types/client";
-import {BaseRequest, BaseResult, Request, Result} from "../types/http";
+import {BaseRequest, BaseResult, HttpMethods, Request, Result} from "../types/http";
 
 export function createClient<C extends ClientBuilder>(baseUrl: string, config: C, options?: ClientBuilderOptions): Client<C> {
     const client = {} as Client<C>;
@@ -71,11 +71,12 @@ export function createClient<C extends ClientBuilder>(baseUrl: string, config: C
                 }
                 fullPath += path;
 
-                const url = new URL(fullPath);
                 if (request.queryParameters) {
+                    const url = new URL(fullPath);
                     for (const [key, value] of Object.entries(request.queryParameters)) {
                         url.searchParams.append(key, value.toString())
                     }
+                    fullPath = url.toString()
                 }
 
                 // Auto-apply the JSON Content-Type header if the body is an object.
@@ -87,7 +88,7 @@ export function createClient<C extends ClientBuilder>(baseUrl: string, config: C
                     })
                 }
 
-                return fetch(url.toString(), {
+                return fetch(fullPath, {
                     method,
                     body: body ?
                         (
@@ -112,6 +113,10 @@ export function createClient<C extends ClientBuilder>(baseUrl: string, config: C
                         throw e
                     }
                     return createResult<any>({
+                        request: {
+                            url: fullPath,
+                            method: method as HttpMethods,
+                        },
                         headers: res.headers,
                         statusCode: res.status,
                         data: result,
