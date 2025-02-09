@@ -2,98 +2,6 @@ import {ClientBuilder, ClientBuilderOptions, Headers, PureRoute} from "../types/
 import {Client} from "../types/client";
 import {BaseRequest, BaseResult, Request, Result} from "../types/http";
 
-function createRequest(base: BaseRequest): Request {
-    return {
-        ...base,
-        addHeaders(headers: Headers) {
-            this.headers = {
-                ...this.headers,
-                ...headers
-            }
-        },
-        setHeaders(headers: Headers) {
-            this.headers = headers
-        },
-        addQueryParameters(queryParameters: { [key: string]: string | number | boolean }) {
-            this.queryParameters = {
-                ...this.queryParameters,
-                ...queryParameters
-            }
-        },
-        setQueryParameters(queryParameters: { [key: string]: string | number | boolean }) {
-            this.queryParameters = queryParameters
-        },
-        setBody(body: any) {
-            this.body = body
-        },
-        setEncoder(encoder: (body: any) => string) {
-            this.encoder = encoder
-        },
-        setDecoder(decoder: (body: string) => any) {
-            this.decoder = decoder
-        },
-        setPath(path: string) {
-            this.path = path
-        },
-        setMethod(method: "GET" | "POST" | "PUT" | "DELETE") {
-            this.method = method
-        },
-        setBaseUrl(baseUrl: string) {
-            this.baseUrl = baseUrl
-        },
-        setTimeout(timeout: number) {
-            this.timeout = timeout
-        },
-        setAbortSignal(signal: AbortSignal) {
-            this.abortSignal = signal
-        },
-        merge(request: Partial<Request>): Request {
-            const newRequest = {
-                ...this,
-                ...request
-            }
-
-            // Properly merge the array properties since they should be merged
-            // instead of being replaced entirely, like new properties be added.
-            if (request.headers) {
-                newRequest.headers = {
-                    ...this.headers,
-                    ...request.headers
-                }
-            }
-            if (request.hooks) {
-                newRequest.hooks = {
-                    ...this.hooks,
-                    ...request.hooks
-                }
-            }
-
-            return newRequest
-        }
-    }
-}
-
-function createResult<Type>(base: BaseResult<Type>): Result<Type> {
-    return {
-        ...base,
-        merge(result: Partial<Result<Type>>): Result<Type> {
-            const newResult = {
-                ...this,
-                ...result
-            }
-            // Properly merge the array properties since they should be merged
-            // instead of being replaced entirely, like new properties be added.
-            if (result.headers) {
-                newResult.headers = {
-                    ...this.headers,
-                    ...result.headers
-                }
-            }
-            return newResult
-        }
-    }
-}
-
 export function createClient<C extends ClientBuilder>(baseUrl: string, config: C, options?: ClientBuilderOptions): Client<C> {
     const client = {} as Client<C>;
     const global = {
@@ -223,4 +131,76 @@ export function createClient<C extends ClientBuilder>(baseUrl: string, config: C
     }
 
     return client;
+}
+
+function mergeObjects<A, B>(a: A, b: B): A {
+    return {
+        ...a,
+        ...b
+    }
+}
+
+function createRequest(base: BaseRequest): Request {
+    return {
+        ...base,
+        addHeaders(headers: Headers) {
+            this.headers = mergeObjects(this.headers, headers)
+        },
+        setHeaders(headers: Headers) {
+            this.headers = headers
+        },
+        addQueryParameters(queryParameters: { [key: string]: string | number | boolean }) {
+            this.queryParameters = mergeObjects(this.queryParameters, queryParameters)
+        },
+        setQueryParameters(queryParameters: { [key: string]: string | number | boolean }) {
+            this.queryParameters = queryParameters
+        },
+        setBody(body: any) {
+            this.body = body
+        },
+        setEncoder(encoder: (body: any) => string) {
+            this.encoder = encoder
+        },
+        setDecoder(decoder: (body: string) => any) {
+            this.decoder = decoder
+        },
+        setPath(path: string) {
+            this.path = path
+        },
+        setMethod(method: "GET" | "POST" | "PUT" | "DELETE") {
+            this.method = method
+        },
+        setBaseUrl(baseUrl: string) {
+            this.baseUrl = baseUrl
+        },
+        setTimeout(timeout: number) {
+            this.timeout = timeout
+        },
+        setAbortSignal(signal: AbortSignal) {
+            this.abortSignal = signal
+        },
+        merge(request: Partial<Request>): Request {
+            const newRequest = mergeObjects(this, request)
+            if (request.headers) {
+                newRequest.headers = mergeObjects(this.headers, request.headers)
+            }
+            if (request.hooks) {
+                newRequest.hooks = mergeObjects(this.hooks, request.hooks)
+            }
+            return newRequest
+        }
+    }
+}
+
+function createResult<Type>(base: BaseResult<Type>): Result<Type> {
+    return {
+        ...base,
+        merge(result: Partial<Result<Type>>): Result<Type> {
+            const newResult = mergeObjects(this, result)
+            if (result.headers) {
+                newResult.headers = mergeObjects(this.headers, result.headers)
+            }
+            return newResult
+        }
+    }
 }
