@@ -1,3 +1,4 @@
 import {Resource} from "../types/builder";
 
-export const createResource = (resource: Resource): Resource => resource
+export const createResource =
+    <R extends Resource>(resource: R): R => resource
