@@ -48,7 +48,7 @@ Tired of scattered API calls and messy data fetching logic?  Client.ts brings or
      prefix: "/users",
      routes: {
        getAdmin: createStaticUserRoute("GET /admin"),
-       getById: createDynamicUserRoute(id => `GET /${id}`),
+       getById: createDynamicUserRoute((id: string) => `GET /${id}`),
        create: createDynamicUserRoute((user: User) => ({
          route: "POST /",
          body: user
