@@ -207,10 +207,10 @@ src/
 
 **Example Resource File** (`resources/posts.ts`):
 ```ts
-import { createSingleAndArrayedRoute } from "@client.ts/core";
+import { createSingleAndArrayedRoute, createResource } from "@client.ts/core";
 
 const { single: postRoute, arrayed: postsRoute } = createSingleAndArrayedRoute<BlogPost>();
-const Posts = {
+const Posts = createResource({
   prefix: "/posts",
   routes: {
     trending: postsRoute.static("GET /trending"),
@@ -219,7 +219,7 @@ const Posts = {
       headers: { 'X-Draft-Access': 'true' }
     }))
   }
-};
+});
 
 export default Posts;
 ```
