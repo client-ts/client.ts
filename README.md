@@ -134,6 +134,37 @@ const { data: firstResource } = await client.resource.getFirst();
 const { data: resourceOne } = await client.resource.getById(1);
 ```
 
+--- 
+
+### Recommended Structure
+
+We highly recommend separating resources into their own files for better organization. Here’s an example structure:
+
+```ts
+// src/resources/posts.ts
+import { createSingleAndArrayedRoute, createResource } from "@client.ts/core";
+const { single: createPostRoute, arrayed: createPostsRoute } = createSingleAndArrayedRoute<Post>();
+const Posts = createResource({
+    routes: {
+        get: createPostsRoute.static("GET /"),
+        getById: createPostsRoute.dynamic((id: number) => `GET /${id}`)
+    }
+})
+export default Posts;
+```
+
+```ts
+// src/client.ts
+import { createClient } from "@client.ts/core";
+import Posts from "./resources/posts";
+const client = createClient("baseUrl", {
+    posts: Posts
+});
+```
+
+This structure enables you to easily add new resources and routes without cluttering the main client file, 
+making it easier to maintain and scale your client painlessly as your project grows.
+
 ---
 
 ### Hooks
