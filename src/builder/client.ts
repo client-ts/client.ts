@@ -14,6 +14,15 @@ function createRequest(base: BaseRequest): Request {
         setHeaders(headers: Headers) {
             this.headers = headers
         },
+        addQueryParameters(queryParameters: { [key: string]: string | number | boolean }) {
+            this.queryParameters = {
+                ...this.queryParameters,
+                ...queryParameters
+            }
+        },
+        setQueryParameters(queryParameters: { [key: string]: string | number | boolean }) {
+            this.queryParameters = queryParameters
+        },
         setBody(body: any) {
             this.body = body
         },
@@ -148,7 +157,14 @@ export function createClient<C extends ClientBuilder>(baseUrl: string, config: C
                 }
                 fullPath += path;
 
-                return connector(fullPath, {
+                const url = new URL(fullPath);
+                if (request.queryParameters) {
+                    for (const [key, value] of Object.entries(request.queryParameters)) {
+                        url.searchParams.append(key, value.toString())
+                    }
+                }
+
+                return connector(url.toString(), {
                     method,
                     body: body ?
                         (
