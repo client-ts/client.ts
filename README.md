@@ -29,7 +29,7 @@ const client = createClient("https://jsonplaceholder.typicode.com", {
 ```
 
 ```ts
-const { result: posts } = await client.posts.get();
+const { data: posts } = await client.posts.get();
 ```
 
 ---
@@ -106,20 +106,24 @@ const client = createClient("baseUrl", {
 Access the routes using the `client` object:
 
 ```ts
-const { result: resources } = await client.resource.get();
-const { result: firstResource } = await client.resource.getFirst();
-const { result: resourceOne } = await client.resource.getById(1);
+const { data: resources } = await client.resource.get();
+const { data: firstResource } = await client.resource.getFirst();
+const { data: resourceOne } = await client.resource.getById(1);
 ```
 
 ---
 
-### Middlewares and Afterwares
+### Hooks
 
-You can add **middlewares** and **afterwares** to perform actions before and after a request. Middlewares allow you to modify the request (e.g., adding headers), while afterwares can log or process the response.
+You can add **hooks** to perform actions before and after a request. 
+`beforeRequest` in a hook allow you to modify the request (e.g., adding headers), 
+while `afterRequest` can log or process the response.
 
-These can be applied globally or at the resource level:
+These can be applied globally, at a resource level, at a route level, or even during request (through another hook):
 
 ```ts
+import {createHook} from "@client.ts/core";
+
 const client = createClient("baseUrl", {
     resource: {
         prefix: "/resource", // Optional
@@ -128,45 +132,50 @@ const client = createClient("baseUrl", {
             getFirst: createStaticResourceRoute.static("GET /first"),
             getById: createDynamicResourceRoute.dynamic((id: number) => `GET /${id}`)
         },
-        middlewares: [], // Resource-specific middlewares
-        afterwares: [] // Resource-specific afterwares
+        hooks: [] // Hooks for the resource
     }
 }, {
-    middlewares: [
-        (request) => {
-            return {
-                ...request,
-                path: "/5" // Modify the request path
-            };
-        }
-    ],
-    afterwares: [
-        (request) => {
-            console.info(request); // Log the request
-            return request;
-        }
+    hooks: [
+        createHook({
+            beforeRequest: (request) => {
+                return request.merge({
+                    headers: {
+                        "Authorization": "Hey @ client.ts"
+                    }
+                })
+            },
+            afterRequest: (request, result) => {
+                return result.merge({
+                    // Example: Some APIs have a `data` key which contains the actual data.
+                    data: result.data.data
+                })
+            }
+        })
     ]
 });
 ```
 
 ---
 
-### Example Middleware: Adding Authorization
+### Example Hook: Adding Authorization
 
 Here’s an example of a middleware that adds an authorization header to the request:
 
 ```ts
-// src/middlewares/withAuthorization.ts
+// src/middlewares/useAuthorization.ts
 const withAuthorization = (token: string) => (request: Request) => {
-    return {
-        ...request,
+    return request.merge({
         headers: {
-            ...request.headers,
             'Authorization': `Bearer ${token}`
         }
-    };
+    });
 };
 ```
+
+It is important to note that `merge` will replace existing properties with provided, except for array properties, such as 
+`headers`, which will be merged together with the newer headers taking priority over the older ones, so that, for example,
+you have a header `Authorization: Hi` in the request, and the hook adds `Authorization: Hello`, the hook will have the 
+higher priority and the request will be sent with `Authorization: Hello`.
 
 ---
 

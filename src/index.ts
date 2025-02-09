@@ -1,5 +1,8 @@
 export * from "./builder/client";
 export * from "./builder/route";
-export * from "./middlewares/withAuthorization";
+export * from "./builder/hook";
+export * from "./hooks/usesAuthorization";
 export type * from "./types/builder"
 export type * from "./types/client"
+export type * from "./types/hook"
+export type * from "./types/http"
