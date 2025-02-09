@@ -5,15 +5,16 @@
 `client.ts` is a lightweight HTTP client designed with a similar principle to Redux: it serves as a single source of truth for all your HTTP request methods. Built with TypeScript in mind, it uses `fetch` internally but can be customized to work with other libraries like Axios.
 
 ```ts
-import { createClient, createRoute } from "@client.ts/core";
+import { createClient, createSingleAndArrayedRoute } from "@client.ts/core";
 
+const { single: postRoute, arrayed: postsRoute } = createSingleAndArrayedRoute<Resource>();
 const client = createClient("https://jsonplaceholder.typicode.com", {
     posts: {
         prefix: "/posts",
         routes: {
-            get: createRoute<Post[]>().static("GET /"),
-            getById: createRoute<Post>().dynamic((id: string) => `GET /${id}`),
-            create: createRoute<Post>().dynamic((name: string) => ({
+            get: postsRoute.static("GET /"),
+            getById: postRoute.dynamic((id: string) => `GET /${id}`),
+            create: postRoute.dynamic((name: string) => ({
                 route: "POST /",
                 body: { name },
                 headers: {
@@ -31,6 +32,16 @@ const client = createClient("https://jsonplaceholder.typicode.com", {
 ```ts
 const { data: posts } = await client.posts.get();
 ```
+
+---
+
+## Key Features
+
+- **TypeScript Support**: Built with TypeScript for type-safe HTTP requests.
+- **Customizable**: Use `fetch` or replace it with libraries like Axios.
+- **Hooks Support**: Modify requests or responses globally, per-resource, or per-route.
+- **Resource-Based Structure**: Organize routes under resources for better maintainability.
+- **Leveled Headers**: Define headers at the client, resource, route, or hook level.
 
 ---
 
@@ -87,17 +98,29 @@ createClient("baseUrl", {
 You can reuse `createRoute` for multiple resources by storing it in a variable:
 
 ```ts
-import { createClient, createRoute } from "@client.ts/core";
+import { createClient, createRoute, createSingleAndArrayedRoute } from "@client.ts/core";
 
-const { static: createStaticResourceRoute, dynamic: createDynamicResourceRoute } = createRoute<Resource>();
+// We recommend using this for routes that have arrays, and non-array resources, this is just a conveinence method 
+// for two `createRoute` calls.
+const { single: resourceRoute, arrayed: resourcesRoute } = createSingleAndArrayedRoute<Resource>();
 
+// We recommend using this for routes that just have non-array resources, as it simplifies creating the routes while allowing 
+// you to reuse them.
+const { dynamic: createDynamicRoute, static: createStaticRoute } = createRoute<AnotherResource>();
 const client = createClient("baseUrl", {
     resource: {
         prefix: "/resource", // Optional
         routes: {
-            get: createRoute<Resource[]>().static("GET /"),
-            getFirst: createStaticResourceRoute.static("GET /first"),
-            getById: createDynamicResourceRoute.dynamic((id: number) => `GET /${id}`)
+            get: resourcesRoute.static("GET /"),
+            getFirst: resourceRoute.static("GET /first"),
+            getById: resourceRoute.dynamic((id: number) => `GET /${id}`)
+        }
+    },
+    anotherResource: {
+        prefix: "/another-resource",
+        routes: {
+            get: createStaticRoute("GET /"),
+            getById: createDynamicRoute((id: number) => `GET /${id}`)
         }
     }
 });
@@ -176,15 +199,6 @@ It is important to note that `merge` will replace existing properties with provi
 `headers`, which will be merged together with the newer headers taking priority over the older ones, so that, for example,
 you have a header `Authorization: Hi` in the request, and the hook adds `Authorization: Hello`, the hook will have the 
 higher priority and the request will be sent with `Authorization: Hello`.
-
----
-
-## Key Features
-
-- **TypeScript Support**: Built with TypeScript for type-safe HTTP requests.
-- **Customizable**: Use `fetch` or replace it with libraries like Axios.
-- **Middleware Support**: Modify requests or responses globally or per-resource.
-- **Resource-Based Structure**: Organize routes under resources for better maintainability.
 
 ---
 

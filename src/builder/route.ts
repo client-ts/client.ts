@@ -17,6 +17,13 @@ export function createRoute<Response>() {
     } as const
 }
 
+export function createSingleAndArrayedRoute<Response>() {
+    return {
+        single: createRoute<Response>(),
+        arrayed: createRoute<Response[]>()
+    } as const
+}
+
 export function route<Response, Args extends any[]>(
     constructor: string |
         ((...args: Args) => string | PureRoute<Response>)
