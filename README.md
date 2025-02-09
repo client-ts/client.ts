@@ -235,7 +235,7 @@ export default Posts;
 
 ```bash
 # Clone and contribute
-git clone https://github.com/client-ts/client.ts.git
+git clone https://github.com/ShindouMihou/client.ts.git
 ```
 
 ## License
