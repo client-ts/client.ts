@@ -51,7 +51,7 @@ Tired of scattered API calls and messy data fetching logic?  Client.ts brings or
        getById: createDynamicUserRoute(id => `GET /${id}`),
        create: createDynamicUserRoute((user: User) => ({
          route: "POST /",
-         body: payload
+         body: user
        }))
      }
    };
