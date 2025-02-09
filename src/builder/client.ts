@@ -24,12 +24,14 @@ export function createClient<C extends ClientBuilder>(baseUrl: string, config: C
         for (const [routeName, routeDef] of Object.entries(resource.routes)) {
             resourceClient[routeName] = async (...args: any[]) => {
                 const result: (PureRoute<any> | string) = routeDef._constructor(...args);
+                const isStringRoute = typeof result === "string";
 
-                let request: Request = typeof result === "string" ? createRequest({
+                const {method:_method, path:_path} = isStringRoute ? decodeRoute(undefined, result) : decodeRoute(result.method, result.route);
+                let request: Request = isStringRoute ? createRequest({
                     headers: resourceStandardHeaders,
                     baseUrl: baseUrl,
-                    method: result.split(" ")[0] as "GET" | "POST" | "PUT" | "DELETE",
-                    path: result.split(" ")[1],
+                    method: _method,
+                    path: _path,
                     decoder: JSON.parse,
                     encoder: JSON.stringify,
                     queryParameters: {},
@@ -40,18 +42,16 @@ export function createClient<C extends ClientBuilder>(baseUrl: string, config: C
                         ...resourceStandardHeaders,
                         ...result.headers ?? {},
                     },
-                    method: result.method ?? result.route.split(" ")[0] as "GET" | "POST" | "PUT" | "DELETE",
-                    path: result.route.split(" ")[1],
+                    method: result.method ?? _method,
+                    path: _path,
                     baseUrl: baseUrl,
                     timeout: result.timeout ?? res.timeout ?? global.timeout,
                 })
 
-                const routeHooks = typeof result === "string" ? [] : result.hooks ?? [];
                 const requestHooks = request.hooks ?? [];
-
                 // Declare the predence of the hooks as well, wherein global hooks run first,
                 // then resource hooks, then route hooks, and finally request hooks.
-                const hooks = [...global.hooks, ...res.hooks, ...routeHooks, ...requestHooks];
+                const hooks = [...global.hooks, ...res.hooks, ...requestHooks];
                 for (const hook of hooks) {
                     if (hook.beforeRequest) {
                         request = hook.beforeRequest(request);
@@ -131,6 +131,22 @@ export function createClient<C extends ClientBuilder>(baseUrl: string, config: C
     }
 
     return client;
+}
+
+function decodeRoute(method: string | undefined, route: string) {
+    const tokens = route.split(" ", 2);
+    if (tokens.length === 1 && method == null) {
+        return {method: method == null ? "GET" : method, path: route} as const
+    }
+    const [_method, path] = tokens;
+    method = _method.toUpperCase();
+    if (!["GET", "POST", "PUT", "DELETE", "PATCH"].includes(method)) {
+        throw new Error(`Invalid HTTP method: ${method} at route: ${route}`)
+    }
+    return {
+        method: method as "GET" | "POST" | "PUT" | "DELETE" | "PATCH",
+        path: path
+    } as const
 }
 
 function mergeObjects<A, B>(a: A, b: B): A {

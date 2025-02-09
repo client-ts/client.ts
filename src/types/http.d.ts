@@ -6,7 +6,7 @@ export type QueryParameters = {
 
 export type BaseRequest = {
     baseUrl: string,
-    method: "GET" | "POST" | "PUT" | "DELETE",
+    method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH",
     path: string,
     queryParameters?: QueryParameters,
     body?: any,
