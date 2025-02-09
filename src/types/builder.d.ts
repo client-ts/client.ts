@@ -1,5 +1,6 @@
 import {RouteDef} from "./client";
 import {Hook} from "./hook";
+import {QueryParameters} from "./http";
 
 export type ClientBuilder = {
     [key: string]: Resource
@@ -50,7 +51,8 @@ export type Resource = {
 export type PureRoute<Response> = {
     method?: "GET" | "POST" | "PUT" | "DELETE",
     route: string,
-    body?: any
+    body?: any,
+    queryParameters?: QueryParameters,
 }   & WithHooks
     & WithHeaders
     & WithEncoderDecoder<Response>

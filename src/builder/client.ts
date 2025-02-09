@@ -129,6 +129,7 @@ export function createClient<C extends ClientBuilder>(baseUrl: string, config: C
                     path: result.split(" ")[1],
                     decoder: JSON.parse,
                     encoder: JSON.stringify,
+                    queryParameters: {},
                     timeout: res.timeout ?? global.timeout,
                 }) : createRequest({
                     ...result,
