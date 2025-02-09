@@ -6,46 +6,9 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 ![TypeScript](https://img.shields.io/badge/-TypeScript-007ACC?logo=typescript&logoColor=white)
 
-Simplify API interactions with a **type-safe**, **structured**, and **hackable** HTTP client designed for modern TypeScript applications. Built with ❤️ for developers who crave Redux-like organization in their API layer.
+**Simplify your HTTP requests and centralize your API logic with Client.ts, a lightweight, Redux Toolkit-inspired HTTP client designed for TypeScript.**
 
-```ts
-// See your API client come alive in 3 steps ⏱️
-import { createClient, createSingleAndArrayedRoute } from "@client.ts/core";
-
-// 1. Define your route creators (this is the recommended way for resources with arrayed and non-arrayed type).
-const { single: postRoute, arrayed: postsRoute } = createSingleAndArrayedRoute<BlogPost>();
-
-// 2. Create your API client
-const blogClient = createClient("https://api.myblog.com", {
-  posts: {
-    prefix: "/posts",
-    routes: {
-      list: postsRoute.static("GET /"), // Get all posts
-      get: postRoute.dynamic((id: string) => `GET /${id}`), // Get single post
-      create: postRoute.dynamic((post: DraftPost) => ({
-        route: "POST /",
-        body: post,
-        headers: { 'X-Editor-Key': "SECRET_123" },
-        encoder: JSON.stringify,
-        decoder: JSON.parse
-      }))
-    }
-  }
-});
-
-// 3. Use anywhere with full TypeScript support ✨
-const { data: latestPost } = await blogClient.posts.get("42");
-```
-
-## Why Client.ts?
-
-| Feature                | client.ts 🦸♂️          | Axios/Fetch 🧑💻         |
-|------------------------|-------------------------|-------------------------|
-| **Type Safety**        | First-class citizen     | Manual typings          |
-| **API Structure**      | Resource-centric design | Scattered endpoints     |
-| **Customization**      | Swap HTTP engines       | Library-locked          |
-| **Hooks**              | Hooks at every level    | Global interceptors     |
-| **Code Maintenance**   | Built for scale         | Gets messy at scale     |
+Tired of scattered API calls and messy data fetching logic?  Client.ts brings order to your HTTP interactions, providing a single source of truth for all your request methods, just like Redux does for your application state.  Built with TypeScript from the ground up, Client.ts offers type safety, customization, and a clean, organized structure for managing your API interactions.
 
 ## Key Features & Benefits
 
@@ -57,6 +20,16 @@ const { data: latestPost } = await blogClient.posts.get("42");
 * **Simplified Route Definitions:** Define static routes with simple strings or dynamic routes with functions, providing flexibility for complex API interactions.
 * **Lightweight and Performant:**  Client.ts is designed to be efficient and minimize its impact on your application's performance.
 * **Timeouts:** Client.ts supports setting timeouts on a global, per-resource, and per-route level.
+
+## Why Client.ts?
+
+| Feature                | client.ts 🦸♂️          | Axios/Fetch 🧑💻         |
+|------------------------|-------------------------|-------------------------|
+| **Type Safety**        | First-class citizen     | Manual typings          |
+| **API Structure**      | Resource-centric design | Scattered endpoints     |
+| **Customization**      | Swap HTTP engines       | Library-locked          |
+| **Hooks**              | Hooks at every level    | Global interceptors     |
+| **Code Maintenance**   | Built for scale         | Gets messy at scale     |
 
 ## Get Started in 4 steps!
 
