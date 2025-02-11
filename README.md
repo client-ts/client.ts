@@ -81,7 +81,8 @@ Tired of scattered API calls and messy data fetching logic?  Client.ts brings or
 ### Declarative Route Definitions
 
 Define routes as either static or dynamic:
-- **Static Routes**: Use a simple string (e.g., `GET /`) to define a route.
+- **Static Routes**: Use a simple string (e.g., `GET /`) to define a route, these routes have some minor memoization 
+when creating the request, so it may be slightly faster, but not by any identifiable measure.
 - **Dynamic Routes**: Use functions to generate routes based on parameters, or even return an object with advanced request details.
 
 Example:
@@ -91,7 +92,11 @@ createClient("baseUrl", {
         prefix: "/resource", // Optional
         routes: {
             get: createRoute<Resource[]>().static("GET /"),
-            getById: createRoute<Resource>().dynamic((id: number) => `GET /${id}`)
+            getById: createRoute<Resource>().dynamic((id: number) => `GET /${id}`),
+            create: createRoute<Resource>().dynamic((resource: Resource) => ({
+                route: "POST /",
+                body: resource
+            }))
         }
     }
 });
@@ -146,6 +151,21 @@ that you can add options like `credentials`, `mode`, `cache` for browser, or `id
 
 We do it this way because we want to keep the library compatible with most environments, as much as possible. Although, there are definitely scenarios where we cannot 
 fulfill this compatibility, but we will try our best to make it as compatible as possible.
+
+### Route Paths
+
+We specifically enforce a type of `${method} ${path}` for route paths, this is to make it easier for developers to understand
+what the route is doing at a glance, but some people might want to use specific Typescript typing for their route paths, in which case, you can use the
+`createRoutePath` utility function to create a route path with a specific type.
+
+```ts
+import {createRoutePath, createRoute} from "@client.ts/core";
+
+const sampleRoute = createRoute<Post>().static(createRoutePath("GET", "/posts"));
+```
+
+Although we definitely recommend using the `${method} ${path}` format as it's easier to understand at a glance rather than stacking
+multiple methods.
 
 ## 🔌 Hooks: Supercharge Your Workflows
 
