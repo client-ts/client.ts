@@ -76,7 +76,7 @@ export function createClient<C extends ClientBuilder>(baseUrl: string, config: C
                 let method: string = request.method ?? "GET";
                 let path: string = request.path;
                 let body: any = request.body;
-                let headers: any = request.headers;
+                let headers: Headers | undefined = request.headers;
                 let encoder: (body: any) => string = request.encoder ?? JSON.stringify;
                 let decoder: (body: string) => any = request.decoder ?? JSON.parse;
 
@@ -171,7 +171,7 @@ function decodeRoute(method: string | undefined, route: string) {
         throw new Error(`Invalid HTTP method: ${method} at route: ${route}`)
     }
     return {
-        method: method as "GET" | "POST" | "PUT" | "DELETE" | "PATCH",
+        method: method as HttpMethods,
         path: path
     } as const
 }
@@ -210,7 +210,7 @@ function createRequest(base: BaseRequest): Request {
         setPath(path: string) {
             this.path = path
         },
-        setMethod(method: "GET" | "POST" | "PUT" | "DELETE") {
+        setMethod(method: HttpMethods) {
             this.method = method
         },
         setBaseUrl(baseUrl: string) {
