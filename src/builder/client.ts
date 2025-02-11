@@ -25,7 +25,24 @@ export function createClient<C extends ClientBuilder>(baseUrl: string, config: C
                 const result: (PureRoute<any> | string) = routeDef._constructor(...args);
                 const isStringRoute = typeof result === "string";
 
-                const {method:_method, path:_path} = isStringRoute ? decodeRoute(undefined, result) : decodeRoute(result.method, result.route);
+                let _method, _path: string;
+                if (routeDef._static && isStringRoute) {
+                    const existingDecodedRoute = resourceClient[routeName + "_appliedRoute"];
+                    const resolvedDecodedRoute = existingDecodedRoute ?? decodeRoute(undefined, result)
+
+                    _method = resolvedDecodedRoute.method
+                    _path = resolvedDecodedRoute.path
+
+                    if (!existingDecodedRoute) {
+                        resourceClient[routeName + "_appliedRoute"] = {method:_method, path:_path};
+                    }
+                } else {
+                    let { method, path } =  isStringRoute ?
+                        decodeRoute(undefined, result) : decodeRoute(result.method, result!.route)
+                    _method = method
+                    _path = path
+                }
+
                 let request: Request = isStringRoute ? createRequest({
                     headers: resourceStandardHeaders,
                     baseUrl: baseUrl,

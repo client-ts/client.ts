@@ -3,6 +3,7 @@ import {Request, Result} from "./http";
 
 export type RouteDef<Response, Args extends any[]> = {
     _constructor: (...args: Args) => string | PureRoute<Response>;
+    _static: boolean;
 };
 
 export type RequestConsumer = (request: Request) => Request;
