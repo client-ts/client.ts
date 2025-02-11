@@ -1,8 +1,9 @@
 import {RouteDef} from "../types/client";
 import {PureRoute} from "../types/builder";
+import {RoutePath} from "../types/http";
 
 export const staticRoute =
-    <Response> (name: string) => route<Response, []>(name)
+    <Response> (path: RoutePath) => route<Response, []>(path)
 
 export function dynamicRoute<Response>() {
     return function <Args extends any[]>(callback: (...args: Args) => string | PureRoute<Response>) {

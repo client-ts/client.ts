@@ -12,8 +12,8 @@ export type QueryParameters = {
     [key: string]: string | number | boolean
 }
 
-
 export type HttpMethods = "GET" | "POST" | "PUT" | "DELETE" | "PATCH"
+export type RoutePath = `${HttpMethods} ${string}`
 
 export type BaseRequest = {
     baseUrl: string,
