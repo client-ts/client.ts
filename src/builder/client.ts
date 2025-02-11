@@ -19,10 +19,7 @@ export function createClient<C extends ClientBuilder>(baseUrl: string, config: C
             additionalFetchOptions: resource.additionalFetchOptions ?? {},
         }
 
-        const resourceStandardHeaders = {
-            ...global.headers,
-            ...res.headers,
-        }
+        const resourceStandardHeaders = mergeObjects(global.headers, res.headers)
         for (const [routeName, routeDef] of Object.entries(resource.routes)) {
             resourceClient[routeName] = async (...args: any[]) => {
                 const result: (PureRoute<any> | string) = routeDef._constructor(...args);
@@ -41,10 +38,7 @@ export function createClient<C extends ClientBuilder>(baseUrl: string, config: C
                     additionalFetchOptions: {},
                 }) : createRequest({
                     ...result,
-                    headers: {
-                        ...resourceStandardHeaders,
-                        ...result.headers ?? {},
-                    },
+                    headers: mergeObjects(resourceStandardHeaders, result.headers ?? {}),
                     method: result.method ?? _method,
                     path: _path,
                     baseUrl: baseUrl,
