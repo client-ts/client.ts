@@ -55,5 +55,9 @@ export type BaseResult<Type> = {
 }
 
 export type Result<Type> = BaseResult<Type> & {
-    merge(request: Partial<Result<Type>>): Result<Type>
+    merge(request: Partial<Result<Type>>): Result<Type>,
+    when<T>(predicate: boolean, callback: (result: Result<Type>) => T | null): T | null,
+    whenStatusCode<T>(statusCode: number, callback: (result: Result<Type>) => T): T | null,
+    whenHasBody<T>(callback: (body: Type) => T): T | null,
+    whenOk<T>(callback: (result: Result<Type>, data: Type) => T): T | null
 }
