@@ -87,11 +87,13 @@ export function createClient<C extends ClientBuilder>(baseUrl: string, config: C
                 fullPath += path;
 
                 if (request.queryParameters) {
-                    const url = new URL(fullPath);
+                    const searchParams = new URLSearchParams();
                     for (const [key, value] of Object.entries(request.queryParameters)) {
-                        url.searchParams.append(key, value.toString())
+                        searchParams.append(key, value.toString())
                     }
-                    fullPath = url.toString()
+                    if (searchParams.size > 0) {
+                        fullPath += ("?" + searchParams.toString())
+                    }
                 }
 
                 // Auto-apply the JSON Content-Type header if the body is an object.
