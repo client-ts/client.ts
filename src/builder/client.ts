@@ -1,6 +1,7 @@
 import {ClientBuilder, ClientBuilderOptions, Headers, PureRoute} from "../types/builder";
 import {Client} from "../types/client";
 import {BaseRequest, BaseResult, HttpMethods, Request, Result} from "../types/http";
+import {ValidatorRejected, ValidatorReject} from "../types/validator";
 
 export function createClient<C extends ClientBuilder>(baseUrl: string, config: C, options?: ClientBuilderOptions): Client<C> {
     const client = {} as Client<C>;
@@ -9,6 +10,7 @@ export function createClient<C extends ClientBuilder>(baseUrl: string, config: C
         headers: options?.headers ?? {},
         timeout: options?.timeout,
         additionalFetchOptions: options?.additionalFetchOptions ?? {},
+        validators: options?.validators ?? [],
     }
     for (const [resourceName, resource] of Object.entries(config)) {
         const resourceClient = {} as any;
@@ -17,6 +19,7 @@ export function createClient<C extends ClientBuilder>(baseUrl: string, config: C
             headers: resource.headers ?? {},
             timeout: resource.timeout,
             additionalFetchOptions: resource.additionalFetchOptions ?? {},
+            validators: resource.validators,
         }
 
         const resourceStandardHeaders = mergeObjects(global.headers, res.headers)
@@ -136,6 +139,7 @@ export function createClient<C extends ClientBuilder>(baseUrl: string, config: C
                     } catch (e) {
                         throw e
                     }
+
                     return createResult<any>({
                         request: {
                             url: fullPath,
@@ -147,6 +151,17 @@ export function createClient<C extends ClientBuilder>(baseUrl: string, config: C
                     })
                 }).
                     then((res) => {
+                        for (const validator of [...global.validators, ...(resource.validators ?? []), ...(request.validators ?? [])]) {
+                            const validation = validator.validate(res, $$validationReject);
+                            if (validation && validation.cause) {
+                                throw {
+                                    validator: validator.name,
+                                    message: `Validation failed by ${validator.name}`,
+                                    cause: validation.cause
+                                };
+                            }
+                        }
+
                         for (const hook of hooks) {
                             if (hook.afterRequest) {
                                 res = hook.afterRequest(request, res);
@@ -267,3 +282,5 @@ function createResult<Type>(base: BaseResult<Type>): Result<Type> {
         }
     }
 }
+
+const $$validationReject: ValidatorReject = (cause: any): ValidatorRejected => ({cause})

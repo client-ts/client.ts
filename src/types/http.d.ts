@@ -5,7 +5,7 @@ import {
     Headers,
     WithTimeout,
     WithAbortSignal,
-    WithAdditionalFetchOptions
+    WithAdditionalFetchOptions, WithValidators
 } from "./builder";
 
 export type QueryParameters = {
@@ -27,6 +27,7 @@ export type BaseRequest = {
     & WithTimeout
     & WithAbortSignal
     & WithAdditionalFetchOptions
+    & WithValidators
 
 export type Request = BaseRequest & {
     setBody(body: any),

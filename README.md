@@ -167,6 +167,20 @@ const sampleRoute = createRoute<Post>().static(createRoutePath("GET", "/posts"))
 Although we definitely recommend using the `${method} ${path}` format as it's easier to understand at a glance rather than stacking
 multiple methods.
 
+## 🔰 Validators: Prevent Invalid Requests
+
+Add validators at any level to ensure your requests match what should be expected. These executes before 
+hooks, and is recommended to be used for validating the response before it gets passed to the hooks, and before the 
+Promise resolves.
+
+```ts
+const requireStatus200 = createValidator("validators.status_code:200", (res, reject) => {
+  if (res.statusCode !== 200) {
+    return reject("Status code is not 200.");
+  }
+});
+```
+
 ## 🔌 Hooks: Supercharge Your Workflows
 
 Add hooks magic at any level:

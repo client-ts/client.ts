@@ -1,6 +1,7 @@
 import {RouteDef} from "./client";
 import {Hook} from "./hook";
 import {QueryParameters, RoutePath} from "./http";
+import {Validator} from "./validator";
 
 export type ClientBuilder = {
     [key: string]: Resource
@@ -10,6 +11,7 @@ export type ClientBuilderOptions = WithHooks
     & WithHeaders
     & WithTimeout
     & WithAdditionalFetchOptions
+    & WithValidators
 
 export type WithHooks = {
     hooks?: Hook[]
@@ -29,6 +31,10 @@ export type WithAbortSignal = {
 
 export type WithHeaders = {
     headers?: Headers
+}
+
+export type WithValidators = {
+    validators?: Validator[];
 }
 
 export type WithAdditionalFetchOptions = {
@@ -54,6 +60,7 @@ export type Resource = {
     & WithHeaders
     & WithTimeout
     & WithAdditionalFetchOptions
+    & WithValidators
 
 export type PureRoute<Response> = {
     method?: "GET" | "POST" | "PUT" | "DELETE",
@@ -66,3 +73,4 @@ export type PureRoute<Response> = {
     & WithAbortSignal
     & WithTimeout
     & WithAdditionalFetchOptions
+    & WithValidators
