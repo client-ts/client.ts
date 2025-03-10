@@ -1,6 +1,6 @@
 {
   "name": "@client.ts/core",
-  "version": "1.1.0-rc.5",
+  "version": "1.1.0-rc.6",
   "description": "A single source of truth for all your Typescript HTTP Requests!",
   "scripts": {
     "build": "tsup src/ --dts --sourcemap"
