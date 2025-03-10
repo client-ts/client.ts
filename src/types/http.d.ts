@@ -9,7 +9,7 @@ import {
 } from "./builder";
 
 export type QueryParameters = {
-    [key: string]: string | number | boolean
+    [key: string]: string | number | boolean | undefined | null
 }
 
 export type HttpMethods = "GET" | "POST" | "PUT" | "DELETE" | "PATCH"

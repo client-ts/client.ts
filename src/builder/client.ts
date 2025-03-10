@@ -90,12 +90,32 @@ export function createClient<C extends ClientBuilder>(baseUrl: string, config: C
                 fullPath += path;
 
                 if (request.queryParameters) {
-                    const searchParams = new URLSearchParams();
-                    for (const [key, value] of Object.entries(request.queryParameters)) {
-                        searchParams.append(key, value.toString())
+                    let params = "";
+                    for (let key in request.queryParameters) {
+                        const value = request.queryParameters[key];
+                        if (value === undefined || value === null) {
+                            continue
+                        }
+
+                        const encodedKey = encodeURIComponent(key)
+                        if (typeof value === "string") {
+                            const param = `${encodedKey}=${encodeURIComponent(value)}`
+                            if (params.length > 0) {
+                                params += `&${param}`;
+                            } else {
+                                params += `?${param}`;
+                            }
+                        } else {
+                            const param = `${encodedKey}=${value}`
+                            if (params.length > 0) {
+                                params += `&${param}`;
+                            } else {
+                                params += `?${param}`;
+                            }
+                        }
                     }
-                    if (searchParams.size > 0) {
-                        fullPath += ("?" + searchParams.toString())
+                    if (params.length > 0) {
+                        fullPath += params;
                     }
                 }
 
