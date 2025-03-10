@@ -1,7 +1,11 @@
-import {ClientBuilder, ClientBuilderOptions, Headers, PureRoute} from "../types/builder";
+import {ClientBuilder, ClientBuilderOptions, PureRoute} from "../types/builder";
 import {Client} from "../types/client";
-import {BaseRequest, BaseResult, HttpMethods, Request, Result} from "../types/http";
-import {ValidatorRejected, ValidatorReject} from "../types/validator";
+import {Request} from "../types/http";
+import {createRequest} from "../internal/client/request";
+import {mergeObjects, withDefault, withDefaultEmptyArray, withDefaultEmptyObject} from "../internal/utils/objects";
+import {executeRequest} from "../internal/client/fetch";
+import {decodeResourceRoute} from "../internal/client/resourceRoute";
+import {executeBeforeRequestHooks} from "../internal/client/hooks";
 
 export function createClient<C extends ClientBuilder>(baseUrl: string, config: C, options?: ClientBuilderOptions): Client<C> {
     const client = {} as Client<C>;
@@ -26,27 +30,15 @@ export function createClient<C extends ClientBuilder>(baseUrl: string, config: C
         for (const [routeName, routeDef] of Object.entries(resource.routes)) {
             resourceClient[routeName] = async (...args: any[]) => {
                 const result: (PureRoute<any> | string) = routeDef._constructor(...args);
-                const isStringRoute = typeof result === "string";
+                let [_method, _path] = decodeResourceRoute({
+                    routeName,
+                    result,
+                    isStatic: typeof result === "string",
+                    set: (key: string, value: any) => resourceClient[key] = value,
+                    get: (key: string) => resourceClient[key]
+                })
 
-                let _method, _path: string;
-                if (routeDef._static && isStringRoute) {
-                    const existingDecodedRoute = resourceClient[routeName + "_appliedRoute"];
-                    const resolvedDecodedRoute = existingDecodedRoute ?? decodeRoute(undefined, result)
-
-                    _method = resolvedDecodedRoute.method
-                    _path = resolvedDecodedRoute.path
-
-                    if (!existingDecodedRoute) {
-                        resourceClient[routeName + "_appliedRoute"] = {method:_method, path:_path};
-                    }
-                } else {
-                    let { method, path } =  isStringRoute ?
-                        decodeRoute(undefined, result) : decodeRoute(result.method, result!.route)
-                    _method = method
-                    _path = path
-                }
-
-                let request: Request = isStringRoute ? createRequest({
+                let request: Request = typeof result === "string" ? createRequest({
                     headers: resourceStandardHeaders,
                     baseUrl: baseUrl,
                     method: _method,
@@ -54,141 +46,32 @@ export function createClient<C extends ClientBuilder>(baseUrl: string, config: C
                     decoder: JSON.parse,
                     encoder: JSON.stringify,
                     queryParameters: {},
-                    timeout: res.timeout ?? global.timeout,
+                    timeout: withDefault(res.timeout, global.timeout),
                     additionalFetchOptions: {},
                 }) : createRequest({
                     ...result,
-                    headers: mergeObjects(resourceStandardHeaders, result.headers ?? {}),
-                    method: result.method ?? _method,
+                    headers: mergeObjects(resourceStandardHeaders, withDefaultEmptyObject(result.headers)),
+                    method: withDefault(result.method, _method),
                     path: _path,
                     baseUrl: baseUrl,
-                    timeout: result.timeout ?? res.timeout ?? global.timeout,
-                    additionalFetchOptions: result.additionalFetchOptions ?? {},
+                    timeout: withDefault(result.timeout, withDefault(res.timeout, global.timeout)),
+                    additionalFetchOptions: withDefaultEmptyObject(result.additionalFetchOptions),
                 })
 
-                const requestHooks = request.hooks ?? [];
-                // Declare the predence of the hooks as well, wherein global hooks run first,
+                const requestHooks = withDefaultEmptyArray(request.hooks);
+
+                // Declare the  of the hooks as well, wherein global hooks run first,
                 // then resource hooks, then route hooks, and finally request hooks.
                 const hooks = [...global.hooks, ...res.hooks, ...requestHooks];
-                for (const hook of hooks) {
-                    if (hook.beforeRequest) {
-                        request = hook.beforeRequest(request);
-                    }
-                }
+                request = executeBeforeRequestHooks(request, hooks);
 
-                let method: string = request.method ?? "GET";
-                let path: string = request.path;
-                let body: any = request.body;
-                let headers: Headers | undefined = request.headers;
-                let encoder: (body: any) => string = request.encoder ?? JSON.stringify;
-                let decoder: (body: string) => any = request.decoder ?? JSON.parse;
-
-                let fullPath = request.baseUrl;
-                if (resource.prefix) {
-                    fullPath += resource.prefix;
-                }
-                fullPath += path;
-
-                if (request.queryParameters) {
-                    let params = "";
-                    for (let key in request.queryParameters) {
-                        const value = request.queryParameters[key];
-                        if (value === undefined || value === null) {
-                            continue
-                        }
-
-                        const encodedKey = encodeURIComponent(key)
-                        if (typeof value === "string") {
-                            const param = `${encodedKey}=${encodeURIComponent(value)}`
-                            if (params.length > 0) {
-                                params += `&${param}`;
-                            } else {
-                                params += `?${param}`;
-                            }
-                        } else {
-                            const param = `${encodedKey}=${value}`
-                            if (params.length > 0) {
-                                params += `&${param}`;
-                            } else {
-                                params += `?${param}`;
-                            }
-                        }
-                    }
-                    if (params.length > 0) {
-                        fullPath += params;
-                    }
-                }
-
-                // Auto-apply the JSON Content-Type header if the body is an object.
-                if (encoder === JSON.stringify && request.headers?.['Content-Type'] === undefined && body) {
-                    request = request.merge({
-                        headers: {
-                            'Content-Type': 'application/json'
-                        }
-                    })
-                }
-
+                const validators =  [...global.validators, ...withDefaultEmptyArray(resource.validators), ...withDefaultEmptyArray(request.validators)]
                 const additionalFetchOptions = {
                     ...global.additionalFetchOptions,
                     ...res.additionalFetchOptions,
                     ...request.additionalFetchOptions
                 }
-
-                return fetch(fullPath, {
-                    method,
-                    body: body ?
-                        (
-                            typeof body === "string" ||
-                            body instanceof ReadableStream ||
-                            body instanceof FormData ||
-                            body instanceof ArrayBuffer ||
-                            body instanceof URLSearchParams
-                        ) ? body : encoder(body) : undefined,
-                    headers,
-                    signal:
-                        request.abortSignal ??
-                        (request.timeout ? AbortSignal.timeout(request.timeout) : undefined),
-                    ...additionalFetchOptions
-                }).
-                then(async (res) => {
-                    let result: any = null;
-                    try {
-                        result = decoder === JSON.parse ?
-                            await res.json() :
-                            await res.text().then(decoder)
-                    } catch (e) {
-                        throw e
-                    }
-
-                    return createResult<any>({
-                        request: {
-                            url: fullPath,
-                            method: method as HttpMethods,
-                        },
-                        headers: res.headers,
-                        statusCode: res.status,
-                        data: result,
-                    })
-                }).
-                    then((res) => {
-                        for (const validator of [...global.validators, ...(resource.validators ?? []), ...(request.validators ?? [])]) {
-                            const validation = validator.validate(res, $$validationReject);
-                            if (validation && validation.cause) {
-                                throw {
-                                    validator: validator.name,
-                                    message: `Validation failed by ${validator.name}`,
-                                    cause: validation.cause
-                                };
-                            }
-                        }
-
-                        for (const hook of hooks) {
-                            if (hook.afterRequest) {
-                                res = hook.afterRequest(request, res);
-                            }
-                        }
-                        return res
-                    });
+                return await executeRequest(resource.prefix, request, hooks, validators, additionalFetchOptions)
             };
         }
         client[resourceName as keyof C] = resourceClient;
@@ -196,111 +79,3 @@ export function createClient<C extends ClientBuilder>(baseUrl: string, config: C
 
     return client;
 }
-
-function decodeRoute(method: string | undefined, route: string) {
-    const tokens = route.split(" ", 2);
-    if (tokens.length === 1 && method == null) {
-        return {method: method == null ? "GET" : method, path: route} as const
-    }
-    const [_method, path] = tokens;
-    method = _method.toUpperCase();
-    if (!["GET", "POST", "PUT", "DELETE", "PATCH"].includes(method)) {
-        throw new Error(`Invalid HTTP method: ${method} at route: ${route}`)
-    }
-    return {
-        method: method as HttpMethods,
-        path: path
-    } as const
-}
-
-function mergeObjects<A, B>(a: A, b: B): A {
-    return {
-        ...a,
-        ...b
-    }
-}
-
-function createRequest(base: BaseRequest): Request {
-    return {
-        ...base,
-        addHeaders(headers: Headers) {
-            this.headers = mergeObjects(this.headers, headers)
-        },
-        setHeaders(headers: Headers) {
-            this.headers = headers
-        },
-        addQueryParameters(queryParameters: { [key: string]: string | number | boolean }) {
-            this.queryParameters = mergeObjects(this.queryParameters, queryParameters)
-        },
-        setQueryParameters(queryParameters: { [key: string]: string | number | boolean }) {
-            this.queryParameters = queryParameters
-        },
-        setBody(body: any) {
-            this.body = body
-        },
-        setEncoder(encoder: (body: any) => string) {
-            this.encoder = encoder
-        },
-        setDecoder(decoder: (body: string) => any) {
-            this.decoder = decoder
-        },
-        setPath(path: string) {
-            this.path = path
-        },
-        setMethod(method: HttpMethods) {
-            this.method = method
-        },
-        setBaseUrl(baseUrl: string) {
-            this.baseUrl = baseUrl
-        },
-        setTimeout(timeout: number) {
-            this.timeout = timeout
-        },
-        setAbortSignal(signal: AbortSignal) {
-            this.abortSignal = signal
-        },
-        merge(request: Partial<Request>): Request {
-            const newRequest = mergeObjects(this, request)
-            if (request.headers) {
-                newRequest.headers = mergeObjects(this.headers, request.headers)
-            }
-            if (request.hooks) {
-                newRequest.hooks = mergeObjects(this.hooks, request.hooks)
-            }
-            return newRequest
-        }
-    }
-}
-
-function createResult<Type>(base: BaseResult<Type>): Result<Type> {
-    return {
-        ...base,
-        merge(result: Partial<Result<Type>>): Result<Type> {
-            const newResult = mergeObjects(this, result)
-            if (result.headers) {
-                newResult.headers = mergeObjects(this.headers, result.headers)
-            }
-            return newResult
-        },
-        when<T>(predicate: boolean, callback: (result: Result<Type>) => T | null): T | null {
-            if (predicate) {
-                return callback(this)
-            }
-            return null
-        },
-        whenStatusCode<T>(statusCode: number, callback: (result: Result<Type>) => T): T | null {
-            return this.when(this.statusCode === statusCode, () => callback(this))
-        },
-        whenHasBody<T>(callback: (body: Type) => T): T | null {
-            return this.when(this.data !== null, () => callback(this.data!))
-        },
-        whenOk<T>(callback: (result: Result<Type>, data: Type) => T): T | null {
-            return this.when(
-                this.statusCode >= 200 && this.statusCode <= 299 && this.data !== null,
-                () => callback(this, this.data!)
-            )
-        }
-    }
-}
-
-const $$validationReject: ValidatorReject = (cause: any): ValidatorRejected => ({cause})
