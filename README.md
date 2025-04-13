@@ -82,7 +82,7 @@ Tired of scattered API calls and messy data fetching logic?  Client.ts brings or
 > applications with minimal footprint, no other dependencies other than React, Typescript and
 > Client.ts.
 >
->  Are you interested? [How about giving it a try by clicking here!](https://github.com/client-ts/react).
+>  Are you interested? [How about giving it a try by clicking here!](https://github.com/client-ts/react-client).
 
 ## Key Knowledge
 
