@@ -76,6 +76,14 @@ Tired of scattered API calls and messy data fetching logic?  Client.ts brings or
    await client.users.create({ name: "Alice", role: "admin" });
    ```
 
+> **⚛️ React Support**
+> 
+> *client.ts* supports React that makes using the library even easier to use with React
+> applications with minimal footprint, no other dependencies other than React, Typescript and
+> Client.ts.
+>
+>  Are you interested? [How about giving it a try by clicking here!](https://github.com/client-ts/react).
+
 ## Key Knowledge
 
 ### Declarative Route Definitions
